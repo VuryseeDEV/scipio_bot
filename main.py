@@ -38,7 +38,7 @@ async def load_cogs():
         if filename.endswith(".py"):
             try:
                 bot.load_extension(f"cogs.{filename[:-3]}")
-                print(f"✅ Loaded cog: {filename}!")
+                print(f"✅ Loaded cog: {filename}! TT")
             except Exception as e:
                 print(e)
 
