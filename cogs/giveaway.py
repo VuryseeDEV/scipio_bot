@@ -60,6 +60,7 @@ class Giveaway(commands.Cog):
         self.bot = bot
 
     @commands.command()
+    @commands.has_permissions(administrator=True)
     async def giveaway(self, ctx, duration: str, *, prize: str = "A surprise!"):
         """Starts a giveaway. Usage: $giveaway <time><unit> <prize>
         Example: $giveaway 5m Gaming Mouse
@@ -79,5 +80,12 @@ class Giveaway(commands.Cog):
         message = await ctx.send(embed=embed, view=view)
         view.message = message  # Store message reference
 
+    @giveaway.error
+    async def giveaway_error(self, ctx, error):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send("⚠️ You need administrator permissions to use this command")
+        else:
+            raise error  
+        
 def setup(bot):
     bot.add_cog(Giveaway(bot))

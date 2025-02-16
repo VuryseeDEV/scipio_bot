@@ -8,11 +8,11 @@ from nextcord.ext import commands
 class ReactionR(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.role_message_id = 1340358578351112263  # Replace with actual message ID
+        self.role_message_id = 1340481770528968724  # Replace with actual message ID
         self.emoji_to_role = {
-            nextcord.PartialEmoji(name="🔴"): 1340358118978359366,  # Replace with actual role ID
-            nextcord.PartialEmoji(name="🟡"): 1340358345076510750,  # Replace with actual role ID
-            nextcord.PartialEmoji(name="🟢"): 1340358312125923390,  # Replace with actual emoji & role ID
+            nextcord.PartialEmoji(name="🔴"): 1340479108609609739,  # Replace with actual role ID
+            nextcord.PartialEmoji(name="🟡"): 1340481362636963932,  # Replace with actual role ID
+            nextcord.PartialEmoji(name="🟢"): 1340481520951099443,  # Replace with actual emoji & role ID
         }
 
     @commands.Cog.listener()
