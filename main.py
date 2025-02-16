@@ -4,8 +4,7 @@ import os
 import asyncio 
 from dotenv import load_dotenv
 import psutil
-import os
-
+import datetime
 
 
 load_dotenv("tkn.env")
@@ -17,6 +16,19 @@ intents.members = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="$", intents=intents)
+
+async def set_rich_presence():
+    activity=nextcord.Activity(
+        type=nextcord.ActivityType.playing,
+        name="with myself",
+        details="lol",
+        #start=datetime.datetime.utcnow(),
+        party_size=(1, 2),
+        buttons=[
+            {"label": "Github", "url": "https://github.com/VuryseeDEV/scipio_bot/tree/main"},
+        ]
+    )
+    await bot.change_presence(activity=activity)
 
 # 
 """@tasks.loop(seconds=60)  # Adjust the interval as needed (e.g., every 60 seconds)
@@ -30,6 +42,7 @@ async def monitor_memory():
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    await set_rich_presence()
     #monitor_memory.start()  
 
 async def load_cogs():
