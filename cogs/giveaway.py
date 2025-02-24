@@ -18,10 +18,11 @@ def convert_time(duration: str) -> int:
     return value * time_units[unit]
 
 class GiveawayView(View):
-    def __init__(self, bot, timeout=60, prize="No prize specified"):
+    def __init__(self, bot, timeout=60, prize="No prize specified", server_name="Unknown Server"):
         super().__init__(timeout=timeout)
         self.bot = bot
         self.prize = prize
+        self.server_name = server_name
         self.entries = []  # List of users who entered
 
     async def on_timeout(self):
@@ -44,6 +45,16 @@ class GiveawayView(View):
 
         # Edit message to show the winner
         await self.message.edit(embed=embed, view=self)
+
+        # Send DM to the winner
+        if winner_mention != "No one entered 😢":
+            try:
+                # Send a direct message to the winner
+                dm_message = f"Hey {winner_mention}! You won **{self.prize}** from the giveaway in **{self.server_name}**! \nPlease follow any instructions provided (if any) to claim your prize!"
+                await winner.send(dm_message)
+            except nextcord.errors.Forbidden:
+                # If the bot cannot DM the winner (e.g., they have DMs disabled from server members)
+                await self.message.channel.send(f"⚠️ I couldn't DM the winner, {winner_mention}. Make sure they allow DMs from server members.")
 
     @nextcord.ui.button(label="Enter Giveaway", style=ButtonStyle.green)
     async def enter_giveaway(self, button: Button, interaction: Interaction):
@@ -76,7 +87,7 @@ class Giveaway(commands.Cog):
             color=nextcord.Color.blue(),
         )
 
-        view = GiveawayView(self.bot, timeout=time_in_seconds, prize=prize)
+        view = GiveawayView(self.bot, timeout=time_in_seconds, prize=prize, server_name=ctx.guild.name)
         message = await ctx.send(embed=embed, view=view)
         view.message = message  # Store message reference
 
@@ -85,7 +96,7 @@ class Giveaway(commands.Cog):
         if isinstance(error, commands.MissingPermissions):
             await ctx.send("⚠️ You need administrator permissions to use this command")
         else:
-            raise error  
+            raise error
         
 def setup(bot):
     bot.add_cog(Giveaway(bot))
