@@ -1,21 +1,29 @@
 import nextcord
 import random
-import time
-from nextcord.ext import commands
 from nextcord import Interaction, Embed, ButtonStyle
+from nextcord.ext import commands
 from nextcord.ui import View, Button
 
 # Function to convert user input into seconds
 def convert_time(duration: str) -> int:
-    time_units = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
+    time_units = {
+        "s": 1,     # seconds
+        "m": 60,    # minutes
+        "h": 3600,  # hours
+        "d": 86400, # days
+        "w": 604800 # weeks
+    }
+
     unit = duration[-1].lower()
     if unit not in time_units:
         return None  # Invalid format
+
     try:
-        value = int(duration[:-1])
+        value = int(duration[:-1])  # Extract numeric part
     except ValueError:
         return None  # Invalid number
-    return value * time_units[unit]
+
+    return value * time_units[unit]  # Convert to seconds
 
 class GiveawayView(View):
     def __init__(self, bot, timeout=60, prize="No prize specified", server_name="Unknown Server"):
@@ -30,11 +38,13 @@ class GiveawayView(View):
         for child in self.children:
             child.disabled = True  # Disable button after giveaway ends
 
+        # Define winner and pick randomly if entries exist
         if self.entries:
             winner = random.choice(self.entries)  # Pick a random winner
             winner_mention = winner.mention
         else:
             winner_mention = "No one entered 😢"
+            winner = None  # Define winner as None if no one entered
 
         # Update embed with winner
         embed = Embed(
@@ -47,14 +57,13 @@ class GiveawayView(View):
         await self.message.edit(embed=embed, view=self)
 
         # Send DM to the winner
-        if winner_mention != "No one entered 😢":
+        if winner:
             try:
                 # Send a direct message to the winner
-                dm_message = f"Hey {winner_mention}! You won **{self.prize}** from the giveaway in **{self.server_name}**! \nPlease follow any instructions provided (if any) to claim your prize!"
+                dm_message = f"Hey {winner.mention}! You won **{self.prize}** from the giveaway in **{self.server_name}**! \nPlease follow any instructions provided to claim your prize!"
                 await winner.send(dm_message)
             except nextcord.errors.Forbidden:
-                # If the bot cannot DM the winner (e.g., they have DMs disabled from server members)
-                await self.message.channel.send(f"⚠️ I couldn't DM the winner, {winner_mention}. Make sure they allow DMs from server members.")
+                await self.message.channel.send(f"⚠️ I couldn't DM the winner, {winner.mention}. Make sure they allow DMs from server members.")
 
     @nextcord.ui.button(label="Enter Giveaway", style=ButtonStyle.green)
     async def enter_giveaway(self, button: Button, interaction: Interaction):
@@ -70,15 +79,16 @@ class Giveaway(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    @commands.has_permissions(administrator=True)
-    async def giveaway(self, ctx, duration: str, *, prize: str = "A surprise!"):
-        """Starts a giveaway. Usage: $giveaway <time><unit> <prize>
-        Example: $giveaway 5m Gaming Mouse
+    @nextcord.slash_command(name="giveaway", description="Starts a giveaway")
+    async def giveaway(self, interaction: Interaction, duration: str, prize: str):
+        """Starts a giveaway with a specified duration and prize.
+        Example: /giveaway 5m Gaming Mouse
         """
         time_in_seconds = convert_time(duration)
         if time_in_seconds is None:
-            await ctx.send("⚠️ Invalid time format! Use `s` (seconds), `m` (minutes), `h` (hours), `d` (days), `w` (weeks). Example: `5m`")
+            await interaction.response.send_message(
+                "⚠️ Invalid time format! Use `s` (seconds), `m` (minutes), `h` (hours), `d` (days), `w` (weeks). Example: `5m`"
+            )
             return
 
         embed = Embed(
@@ -87,16 +97,18 @@ class Giveaway(commands.Cog):
             color=nextcord.Color.blue(),
         )
 
-        view = GiveawayView(self.bot, timeout=time_in_seconds, prize=prize, server_name=ctx.guild.name)
-        message = await ctx.send(embed=embed, view=view)
+        view = GiveawayView(self.bot, timeout=time_in_seconds, prize=prize, server_name=interaction.guild.name)
+        message = await interaction.response.send_message(embed=embed, view=view)
         view.message = message  # Store message reference
 
     @giveaway.error
-    async def giveaway_error(self, ctx, error):
-        if isinstance(error, commands.MissingPermissions):
-            await ctx.send("⚠️ You need administrator permissions to use this command")
+    async def giveaway_error(self, interaction: Interaction, error):
+        """Handle errors related to the giveaway command."""
+        if isinstance(error, nextcord.errors.Forbidden):
+            await interaction.response.send_message("⚠️ You need administrator permissions to use this command.")
         else:
             raise error
-        
+
 def setup(bot):
+    """Add the Giveaway cog to the bot."""
     bot.add_cog(Giveaway(bot))
