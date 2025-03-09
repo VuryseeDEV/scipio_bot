@@ -17,13 +17,11 @@ bot = commands.Bot(command_prefix="$", intents=intents)
 
 async def set_rich_presence():
     activity = nextcord.Activity(
-        type=nextcord.ActivityType.playing,
-        name="with myself",
-        details="lol",
-        party_size=(1, 2),
-        buttons=[
-            {"label": "Github", "url": "https://github.com/VuryseeDEV/scipio_bot/tree/main"},
-        ]
+        type=nextcord.ActivityType.watching,
+        name="YouTube",
+        details="",
+        party_size=(1, 100),
+        url="https://github.com/VuryseeDEV/scipio_bot/tree/main"  # This URL is just part of the activity details but not a button.
     )
     await bot.change_presence(activity=activity)
 
