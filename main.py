@@ -21,7 +21,7 @@ async def set_rich_presence():
         name="YouTube",
         details="",
         party_size=(1, 100),
-        url="https://github.com/VuryseeDEV/scipio_bot/tree/main"  # This URL is just part of the activity details but not a button.
+        url="https://github.com/VuryseeDEV/scipio_bot/tree/main"  
     )
     await bot.change_presence(activity=activity)
 
